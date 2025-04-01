@@ -10,19 +10,12 @@ public class UserManagerService
     private readonly List<User> _registeredUsers = new List<User>();
 
 
-    //The method below checks if the username is unique. Returns true if the username is unique, false if it exists.
-    public bool IsUniqueUsername(string username) 
-    {
-        //throw new NotImplementedException(); //This was removed after the test failed and I refactored the code.
-        return !_registeredUsers.Exists(u => u.UserName.Equals(username));
-    }
-
 
     //The method below registers a user with the given username, password and email.
     public RegistrationResponse RegisterUser(string username, string password, string email)
     {
         //throw new NotImplementedException();
-        if (_registeredUsers.Any(u => u.UserName == username)) //Check if the username already exists.
+        if (!IsUniqueUsername(username)) //Check if the username already exists.
         {
             return new RegistrationResponse
             {
@@ -77,7 +70,12 @@ public class UserManagerService
 
     }
 
-
+    //The method below checks if the username is unique. Returns true if the username is unique, false if it exists.
+    public bool IsUniqueUsername(string username)
+    {
+        //throw new NotImplementedException(); //This was removed after the test failed and I refactored the code.
+        return !_registeredUsers.Exists(u => u.UserName.Equals(username));
+    }
 
     public bool ValidateEmail(string email) //This method validates the email format.
     {

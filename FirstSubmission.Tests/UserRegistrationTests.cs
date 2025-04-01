@@ -7,6 +7,45 @@
 public sealed class UserRegistrationTests
 {
 
+    //Unique Username Tests
+
+    [TestMethod] //A test that checks if the username is unique.
+    public void IsUniqueUsername_CheckIfUsernameIsUnique_ShouldReturnTrue()
+    {
+        //Arrange - Create the service and a new username
+        var userManager = new UserManagerService();
+        string username = "UniqueTest";
+
+        // Act - Check if the username is unique
+        bool result = userManager.IsUniqueUsername(username);
+
+        // Assert - Verify username is considered unique
+        Assert.IsTrue(result);
+    }
+
+    [TestMethod] //A test that checks if the username is not unique.
+    public void IsUsernameUnique_CheckIfUsernameIsNotUnique_ShouldReturnFalse()
+    {
+        //Arrange - Create the service and register a user
+        var userManager = new UserManagerService();
+        string username = "existinguser";
+        var user = new User
+        {
+            UserName = username,
+            Email = "existing@example.com",
+            Password = "Password@123"
+        };
+
+        // Register first user
+        userManager.RegisterUser(user.UserName, user.Password, user.Email);
+
+        // Act - Check if the same username is unique
+        var result = userManager.IsUniqueUsername(username);
+
+        // Assert - Verify username is not considered unique
+        Assert.IsFalse(result);
+    }
+
     // Validate Username Tests
 
     [TestMethod] //This a happy path test case.
@@ -16,12 +55,11 @@ public sealed class UserRegistrationTests
         var userManager = new UserManagerService();
         string username = "testing123";
 
-
         //Act - Attempt to validate the username
         bool result = userManager.ValidateUsername(username);
 
         //Assert - Verify the username is considered valid
-        Assert.IsTrue(result, "Valid username.");
+        Assert.IsTrue(result);
     }
 
     [TestMethod] //A test that checks if the username is too short.
@@ -35,9 +73,8 @@ public sealed class UserRegistrationTests
         bool result = userManager.ValidateUsername(username);
 
         //Assert - Verifying the username is considered invalid
-        Assert.IsFalse(result, "Username too short.");
+        Assert.IsFalse(result);
     }
-
 
     [TestMethod] //A test that checks if the username is too long.
     public void ValidateUsername_TooLong_ShouldReturnFalse()
@@ -50,7 +87,7 @@ public sealed class UserRegistrationTests
         bool result = userManager.ValidateUsername(username);
 
         //Assert - Verifying the username is considered invalid
-        Assert.IsFalse(result, "Too long Username");
+        Assert.IsFalse(result);
     }
 
     //Validate Password Tests
@@ -68,7 +105,6 @@ public sealed class UserRegistrationTests
         //Assert
         Assert.IsTrue(result);
     }
-
 
     [TestMethod] //A test that checks if the password has special characters.
     public void ValidatePassword_NoSpecialCharacter_ReturnsFalse()
@@ -101,7 +137,7 @@ public sealed class UserRegistrationTests
     //Validate Email Tests
 
     [TestMethod] //A test that checks if the email is valid.
-    public void ValidateEmail_ValidFormat_ReturnsTrue()
+    public void ValidateEmail_ValidEmailFormat_ReturnsTrue()
     {
         //Arrange
         var userManager = new UserManagerService();
@@ -191,6 +227,7 @@ public sealed class UserRegistrationTests
 
         //Assert - A verification that the user was not registered
         Assert.IsFalse(result.IsSuccess);
+        Assert.AreEqual("Invalid Username", result.ErrorMessage);
 
     }
 
@@ -208,6 +245,7 @@ public sealed class UserRegistrationTests
 
         //Assert - Verify registration failed
         Assert.IsFalse(result.IsSuccess);
+        Assert.AreEqual("Invalid Password", result.ErrorMessage);
 
     }
 
@@ -216,16 +254,17 @@ public sealed class UserRegistrationTests
     {
         // Arrange - Create the service and two users with the same username
         var userManager = new UserManagerService();
+        string UserName = "duplicateuser";
         var firstUser = new User
         {
-            UserName = "duplicateuser",
+            UserName = UserName,
             Password = "Valid@Pass123",
             Email = "first@example.com"
         };
 
         var secondUser = new User
         {
-            UserName = "duplicateuser", // Same username as first user
+            UserName = UserName, // Same username as first user
             Password = "Different@Pass456",
             Email = "second@example.com"
         };
@@ -234,50 +273,53 @@ public sealed class UserRegistrationTests
         userManager.RegisterUser(firstUser.UserName, firstUser.Password, firstUser.Email);
 
         // Act - Attempt to register second user with duplicate username
-        bool result = userManager.RegisterUser(secondUser.UserName, secondUser.Password, secondUser.Email).IsSuccess;
+        var result = userManager.RegisterUser(secondUser.UserName, secondUser.Password, secondUser.Email);
 
         //Assert - Verify second registration failed
-        Assert.IsFalse(result);
+        Assert.IsFalse(result.IsSuccess);
+        Assert.AreEqual($"Username {UserName} already exists", result.ErrorMessage);
     }
 
-    //Unique Username Tests
-
-    [TestMethod] //A test that checks if the username is unique.
-    public void IsUniqueUsername_NewUsername_ShouldReturnTrue()
+    [TestMethod] //A test that shows error message when registering with invalid email.
+    public void RegisterUser_EmailNotValidWhenMissingAtSymbol_ShouldReturnErrorMessage()
     {
-        //Arrange - Create the service and a new username
+        // Arrange - Create the service and a user with an invalid email
         var userManager = new UserManagerService();
-        string username = "UniqueTest";
-
-        // Act - Check if the username is unique
-        bool result = userManager.IsUniqueUsername(username);
-
-        // Assert - Verify username is considered unique
-        Assert.IsTrue(result);
-    }
-
-    [TestMethod] //A test that checks if the username is not unique.
-    public void IsUsernameUnique_ExistingUsername_ShouldReturnFalse()
-    {
-        //Arrange - Create the service and register a user
-        var userManager = new UserManagerService();
-        string username = "existinguser";
-        var user = new User
+        var firstUser = new User
         {
-            UserName = username,
-            Email = "existing@example.com",
-            Password = "Password@123"
+            UserName = "UserTest",
+            Password = "Valid@Pass123",
+            Email = "first.example.com"
         };
 
-        // Register first user
-        userManager.RegisterUser(user.UserName, user.Password, user.Email);
+        // Register user
+        var result = userManager.RegisterUser(firstUser.UserName, firstUser.Password, firstUser.Email);
 
-        // Act - Check if the same username is unique
-        var result = userManager.IsUniqueUsername(username);
-
-        // Assert - Verify username is not considered unique
-        Assert.IsFalse(result);
+        //Assert - Verify invalid email registration failed
+        Assert.IsFalse(result.IsSuccess);
+        Assert.AreEqual("Invalid Email", result.ErrorMessage);
     }
+
+    [TestMethod] //A test that shows error message when registering with invalid email.
+    public void RegisterUser_EmailNotValidWhenMissingDomain_ShouldReturnErrorMessage()
+    {
+        // Arrange - Create the service and a user with an invalid email
+        var userManager = new UserManagerService();
+        var firstUser = new User
+        {
+            UserName = "UserTest",
+            Password = "Valid@Pass123",
+            Email = "first@example."
+        };
+
+        // Register user
+        var result = userManager.RegisterUser(firstUser.UserName, firstUser.Password, firstUser.Email);
+
+        //Assert - Verify invalid email registration failed
+        Assert.IsFalse(result.IsSuccess);
+        Assert.AreEqual("Invalid Email", result.ErrorMessage);
+    }
+
 }
 
 

@@ -6,10 +6,10 @@
 version: 2
 updates:
   - package-ecosystem: "nuget" # See documentation for possible values
-    directory: "./FirstSubmission"
+    directory: "/FirstSubmission"
     schedule:
       interval: "weekly"
   - package-ecosystem: "nuget" # See documentation for possible values
-    directory: "./FirstSubmission.Tests"
+    directory: "/FirstSubmission.Tests"
     schedule:
       interval: "weekly"

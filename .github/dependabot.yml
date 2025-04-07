@@ -9,3 +9,7 @@ updates:
     directory: "./FirstSubmission"
     schedule:
       interval: "weekly"
+  - package-ecosystem: "nuget" # See documentation for possible values
+    directory: "./FirstSubmission.Tests"
+    schedule:
+      interval: "weekly"
